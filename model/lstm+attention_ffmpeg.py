@@ -21,7 +21,7 @@ plt.ylabel('power', fontsize=18)
 plt.show()
 
 BATCH_SIZE = 128
-EPOCHS = 10
+EPOCHS = 20
 SEQ_LEN = 10
 FUTURE_PERIOD_PREDICT = 1
 RATIO_TO_PREDICT = "power"
@@ -134,12 +134,12 @@ class Attention(Layer):
     def get_config(self):
         config = super().get_config().copy()
         config.update({
-            'vocab_size': self.vocab_size,
-            'num_layers': self.num_layers,
-            'units': self.units,
-            'd_model': self.d_model,
-            'num_heads': self.num_heads,
-            'dropout': self.dropout,
+            'step_dim': self.step_dim,
+            'W_regularizer': self.W_regularizer,
+            'b_regularizer': self.b_regularizer,
+            'W_constraint': self.W_constraint,
+            'b_constraint': self.b_constraint,
+            'bias': self.bias,
         })
         return config
 
@@ -200,7 +200,7 @@ model_lstm_attention.fit(X_train, y_train,
                          epochs=EPOCHS,
                          validation_data=(X_test, y_test))
 
-# model_lstm_attention.save('lstm+attention.h5')
+model_lstm_attention.save('../model_saved/lstm+attention_epoch{0}.h5'.format(EPOCHS))
 # print(y_test.shape)
 # predicted_LSTM_Att = model_lstm_attention.predict(X_test)
 # predicted_stock_price = np.vstack((np.full((10, 1), np.nan), predicted_LSTM_Att))
@@ -212,9 +212,9 @@ model_lstm_attention.fit(X_train, y_train,
 # plt.xlabel('DateTime')
 # plt.ylabel('power')
 # plt.legend()
-# plt.savefig("/Users/Arithmetic/pythonProject/lstm+attention/result_pics/lstm+attention.png")
+# plt.savefig("/Users/Arithmetic/pythonProject/lstm+attention/result_pics/lstm+attention_epoch1.png")
 # plt.show()
-
+# loaded_saved_model = tf.keras.models.load_model('../model_saved/lstm+attention_epoch2.h5')
 predicted_LSTM_Att = model_lstm_attention.predict(X_test)
 # plt.plot(list(range(data_y.shape[0])), data_y, label='True')
 plt.plot(list(range(X_test.shape[0])), y_test, label='True')
@@ -223,5 +223,5 @@ plt.title('ffmpeg-power')
 plt.xlabel('DateTime')
 plt.ylabel('power')
 plt.legend()
-plt.savefig("/Users/Arithmetic/pythonProject/lstm+attention/result_pics/lstm+attention.png")
+plt.savefig("/Users/Arithmetic/pythonProject/lstm+attention/result_pics/lstm+attention_epoch{0}.png".format(EPOCHS))
 plt.show()
