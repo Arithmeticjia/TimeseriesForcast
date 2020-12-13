@@ -21,7 +21,7 @@ plt.ylabel('NDX', fontsize=18)
 plt.show()
 
 BATCH_SIZE = 128
-EPOCHS = 3
+EPOCHS = 5
 SEQ_LEN = 10
 FUTURE_PERIOD_PREDICT = 1
 RATIO_TO_PREDICT = "NDX"
@@ -131,6 +131,18 @@ class Attention(Layer):
     def compute_mask(self, input, input_mask=None):
         return None
 
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update({
+            'step_dim': self.step_dim,
+            'W_regularizer': self.W_regularizer,
+            'b_regularizer': self.b_regularizer,
+            'W_constraint': self.W_constraint,
+            'b_constraint': self.b_constraint,
+            'bias': self.bias,
+        })
+        return config
+
     def call(self, x, mask=None):
         features_dim = self.features_dim
         step_dim = self.step_dim
@@ -166,7 +178,7 @@ class Attention(Layer):
 
 
 inp = Input(shape=(SEQ_LEN, data_X.shape[1]))
-x = GRU(256, return_sequences=True)(inp)
+x = LSTM(256, return_sequences=True)(inp)
 x = Dropout(0.2)(x)
 x = BatchNormalization()(x)
 x = Attention(SEQ_LEN)(x)
@@ -188,28 +200,18 @@ model_lstm_attention.fit(X_train, y_train,
                     epochs=EPOCHS,
                     validation_data=(X_test, y_test))
 
-# model_lstm_attention.save('lstm+gru.h5')
+# model_lstm_attention.save('lstm+attention.h5')
 
 print(y_test.shape)
 predicted_LSTM_Att = model_lstm_attention.predict(X_test)
-predicted_stock_price = np.vstack((np.full((10, 1), np.nan), predicted_LSTM_Att))
-plt.plot(y_test, label='True')
-# plt.plot(predicted_stock_price, color='green', label='Predicted Price')
-plt.plot(list(predicted_LSTM_Att), label='Test')
-plt.title('Nasdaq100')
-#plt.xticks(range(0,df.shape[0],50),df['Date'].loc[::50],rotation=45)
-plt.xlabel('DateTime')
-plt.ylabel('NDX')
-plt.legend()
-plt.show()
 
-train_LSTM_Att = model_lstm_attention.predict(X_train)
-plt.plot(list(range(data_y.shape[0])), data_y, label='True')
-plt.plot(list(train_LSTM_Att), label='Predicted Train')
-plt.plot(list(range(y_train.shape[0], y_train.shape[0] + y_test.shape[0])), predicted_LSTM_Att,  label='Predicted Test')
-plt.title('Nasdaq100')
+# 测试集结果可视化
+plt.plot(list(range(X_test.shape[0])), y_test, label='True')
+plt.plot(list(predicted_LSTM_Att), label='Predicted Test')
+plt.title('ffmpeg-power')
 plt.xlabel('DateTime')
-plt.ylabel('NDX')
+plt.ylabel('power')
 plt.legend()
+plt.savefig("/Users/Arithmetic/pythonProject/lstm+attention/result_pics/lstm+attention_nasdaq_epoch{0}.png".format(EPOCHS))
 plt.show()
 
